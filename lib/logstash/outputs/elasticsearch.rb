@@ -178,6 +178,12 @@ class LogStash::Outputs::ElasticSearch < LogStash::Outputs::Base
   # For more details on actions, check out the [Elasticsearch bulk API documentation](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/docs-bulk.html)
   config :action, :validate => :string, :default => "index"
 
+  config :use_ssl, :validate => :boolean, :default => false
+
+  config :user, :validate => :string, :default => nil
+
+  config :password, :validate => :password, :default => nil
+
   public
   def register
     client_settings = {}

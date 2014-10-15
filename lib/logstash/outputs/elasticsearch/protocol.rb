@@ -63,9 +63,12 @@ module LogStash::Outputs::Elasticsearch
           :host => [options[:host], options[:port]].join(":")
         )
 
+        scheme = options[:use_ssl] ? "https" : "http"
+        auth = (options[:user] && !options[:user].nil) && (options[:password] && !options[:password].nil?) ? "#{options[:user]}:#{options[:password]}@" : ""
+
         # Use FTW to do indexing requests, for now, until we
         # can identify and resolve performance problems of elasticsearch-ruby
-        @bulk_url = "http://#{options[:host]}:#{options[:port]}/_bulk"
+        @bulk_url = "#{scheme}://#{auth}#{options[:host]}:#{options[:port]}/_bulk"
         @agent = FTW::Agent.new
 
         return client
@@ -80,7 +83,7 @@ module LogStash::Outputs::Elasticsearch
           bulk_ftw(actions)
         end
       end
-      
+
       def bulk_esruby(actions)
         @client.bulk(:body => actions.collect do |action, args, source|
           if source
@@ -170,7 +173,7 @@ module LogStash::Outputs::Elasticsearch
 
         @settings.put("node.client", true)
         @settings.put("http.enabled", false)
-        
+
         if options[:client_settings]
           options[:client_settings].each do |key, value|
             @settings.put(key, value)
@@ -182,7 +185,7 @@ module LogStash::Outputs::Elasticsearch
 
       def hosts(options)
         if options[:port].to_s =~ /^\d+-\d+$/
-          # port ranges are 'host[port1-port2]' according to 
+          # port ranges are 'host[port1-port2]' according to
           # http://www.elasticsearch.org/guide/reference/modules/discovery/zen/
           # However, it seems to only query the first port.
           # So generate our own list of unicast hosts to scan.
